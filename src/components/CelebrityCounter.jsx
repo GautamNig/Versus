@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useCelebrityCounter } from '../hooks/useCelebrityCounter';
 import { useCounterIncrement } from '../hooks/useCounterIncrement';
+import { useCooldown } from '../hooks/useCooldown';
 import { FirstTimeModal } from './FirstTimeModal';
 import { PollingStatus } from './PollingStatus';
 import { WinnerCelebration } from './WinnerCelebration';
@@ -26,6 +27,9 @@ export const CelebrityCounter = () => {
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
   const [winner, setWinner] = useState(null);
+  
+  // Add cooldown hook
+  const { cooldown, isOnCooldown, startCooldown } = useCooldown();
 
   useEffect(() => {
     if (!loading && checkIfFirstTimeUser()) {
@@ -34,13 +38,17 @@ export const CelebrityCounter = () => {
   }, [loading, checkIfFirstTimeUser]);
 
   const handleSwitchCounter = async () => {
-    if (celebrities.length < 2) return;
+    if (celebrities.length < 2 || isOnCooldown) return;
 
     const currentActive = activeCelebrity;
     const celebA = celebrities[0];
     const celebB = celebrities[1];
     
     const newActiveId = currentActive === celebA.id ? celebB.id : celebA.id;
+    
+    // Start cooldown before making the API call
+    startCooldown();
+    
     await switchCounter(newActiveId);
   };
 
@@ -51,6 +59,10 @@ export const CelebrityCounter = () => {
 
   const getButtonText = () => {
     if (!activeCelebrity) return 'Start Counter';
+    
+    if (isOnCooldown) {
+      return `Cooldown: ${cooldown}s`;
+    }
     
     const activeCeleb = celebrities.find(c => c.id === activeCelebrity);
     const otherCeleb = celebrities.find(c => c.id !== activeCelebrity);
@@ -68,7 +80,6 @@ export const CelebrityCounter = () => {
     );
   };
 
-  // Move the winner detection effect AFTER isGameOver is defined
   useEffect(() => {
     const gameOver = isGameOver();
     if (gameOver && !showWinnerCelebration) {
@@ -101,7 +112,7 @@ export const CelebrityCounter = () => {
   const celebB = celebrities[1];
   const counterA = counters[celebA.id];
   const counterB = counters[celebB.id];
-  const gameOver = isGameOver(); // Now this is defined after the function
+  const gameOver = isGameOver();
 
   return (
     <div className="celebrity-counter">
@@ -140,11 +151,16 @@ export const CelebrityCounter = () => {
         <div className="center-controls">
           <button 
             onClick={handleSwitchCounter}
-            disabled={gameOver || showFirstTimeModal}
-            className={`switch-button ${gameOver ? 'game-over' : ''}`}
+            disabled={gameOver || showFirstTimeModal || isOnCooldown}
+            className={`switch-button ${gameOver ? 'game-over' : ''} ${isOnCooldown ? 'cooldown' : ''}`}
           >
             {gameOver ? 'Game Over!' : getButtonText()}
           </button>
+          {isOnCooldown && (
+            <div className="cooldown-message">
+              Please wait {cooldown} seconds before switching again
+            </div>
+          )}
           {gameOver && (
             <div className="winner-message">
               {getActiveCelebrity()?.name} Wins! 🎉

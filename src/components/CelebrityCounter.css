@@ -187,3 +187,29 @@
   from { transform: scale(1); }
   to { transform: scale(1.2); }
 }
+
+/* Cooldown button state */
+.switch-button.cooldown {
+  background: #6b7280 !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3) !important;
+}
+
+.switch-button.cooldown:hover {
+  transform: none !important;
+}
+
+.cooldown-message {
+  color: #fbbf24;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  text-align: center;
+  animation: pulse 1.5s infinite;
+}
+
+/* Update the existing pulse animation to be more subtle */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
