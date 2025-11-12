@@ -1,0 +1,87 @@
+/* src/components/WinnerCelebration.css */
+.winner-celebration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.celebration-content {
+  text-align: center;
+  color: white;
+  position: relative;
+}
+
+.winner-title {
+  font-size: 3rem;
+  margin-bottom: 2rem;
+  animation: bounce 1s infinite;
+}
+
+.winner-name {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #fbbf24;
+  margin-bottom: 2rem;
+  animation: pulse 1.5s infinite;
+}
+
+.trophy {
+  font-size: 8rem;
+  margin-bottom: 2rem;
+  animation: spin 2s linear infinite;
+}
+
+.celebration-message {
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fbbf24;
+  animation: confettiFall 5s linear infinite;
+}
+
+.confetti:nth-child(1) { left: 10%; animation-delay: 0s; }
+.confetti:nth-child(2) { left: 20%; animation-delay: 0.5s; }
+.confetti:nth-child(3) { left: 30%; animation-delay: 1s; }
+.confetti:nth-child(4) { left: 40%; animation-delay: 1.5s; }
+.confetti:nth-child(5) { left: 60%; animation-delay: 2s; }
+.confetti:nth-child(6) { left: 70%; animation-delay: 2.5s; }
+.confetti:nth-child(7) { left: 80%; animation-delay: 3s; }
+.confetti:nth-child(8) { left: 90%; animation-delay: 3.5s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}

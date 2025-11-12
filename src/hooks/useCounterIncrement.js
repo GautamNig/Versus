@@ -1,38 +1,37 @@
 // src/hooks/useCounterIncrement.js
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { appConfig } from '../config/appConfig';
 
 export const useCounterIncrement = () => {
   useEffect(() => {
+    let intervalId;
+
     const incrementCounter = async () => {
       try {
-        // Get current active state
         const { data: activeState, error: activeError } = await supabase
           .from('active_state')
           .select('*')
           .single();
 
-        if (activeError) throw activeError;
+        if (activeError) return;
 
         const activeCelebrityId = activeState?.active_celebrity_id;
-        
         if (!activeCelebrityId) return;
 
-        // Get current counter for active celebrity
         const { data: counter, error: counterError } = await supabase
           .from('counters')
           .select('*')
           .eq('celebrity_id', activeCelebrityId)
           .single();
 
-        if (counterError) throw counterError;
+        if (counterError) return;
 
-        // Check if max value reached
         if (counter.current_value >= counter.max_value) {
-          return; // Stop incrementing
+          clearInterval(intervalId);
+          return;
         }
 
-        // Increment counter
         const { error: updateError } = await supabase
           .from('counters')
           .update({ 
@@ -41,16 +40,21 @@ export const useCounterIncrement = () => {
           })
           .eq('celebrity_id', activeCelebrityId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error updating counter:', updateError);
+        }
 
       } catch (error) {
-        console.error('Error incrementing counter:', error);
+        console.error('Error in increment counter:', error);
       }
     };
 
-    // Set up interval to increment every second
-    const interval = setInterval(incrementCounter, 1000);
+    intervalId = setInterval(incrementCounter, appConfig.counter.incrementInterval);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 };

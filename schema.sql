@@ -47,3 +47,7 @@ SELECT id, 0, 100 FROM celebrities;
 
 -- Insert initial active state
 INSERT INTO active_state (active_celebrity_id) VALUES (NULL);
+
+ALTER PUBLICATION supabase_realtime ADD TABLE celebrities;
+ALTER PUBLICATION supabase_realtime ADD TABLE counters;
+ALTER PUBLICATION supabase_realtime ADD TABLE active_state;

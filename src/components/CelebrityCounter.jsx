@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useCelebrityCounter } from '../hooks/useCelebrityCounter';
 import { useCounterIncrement } from '../hooks/useCounterIncrement';
 import { FirstTimeModal } from './FirstTimeModal';
+import { PollingStatus } from './PollingStatus';
+import { WinnerCelebration } from './WinnerCelebration';
 import './CelebrityCounter.css';
 
 export const CelebrityCounter = () => {
@@ -19,13 +21,13 @@ export const CelebrityCounter = () => {
     hasUserSelected
   } = useCelebrityCounter();
   
-  // Use the counter increment hook
   useCounterIncrement();
   
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
+  const [winner, setWinner] = useState(null);
 
   useEffect(() => {
-    // Show first time modal if this is the first user and no selection made
     if (!loading && checkIfFirstTimeUser()) {
       setShowFirstTimeModal(true);
     }
@@ -38,12 +40,10 @@ export const CelebrityCounter = () => {
     const celebA = celebrities[0];
     const celebB = celebrities[1];
     
-    // Switch to the other celebrity
     const newActiveId = currentActive === celebA.id ? celebB.id : celebA.id;
     await switchCounter(newActiveId);
   };
 
-  // This function handles the modal selection and closes the modal
   const handleModalSelection = async (celebrityId) => {
     await handleFirstTimeSelection(celebrityId);
     setShowFirstTimeModal(false);
@@ -68,6 +68,18 @@ export const CelebrityCounter = () => {
     );
   };
 
+  // Move the winner detection effect AFTER isGameOver is defined
+  useEffect(() => {
+    const gameOver = isGameOver();
+    if (gameOver && !showWinnerCelebration) {
+      const winningCelebrity = getActiveCelebrity();
+      if (winningCelebrity) {
+        setWinner(winningCelebrity);
+        setShowWinnerCelebration(true);
+      }
+    }
+  }, [counters, showWinnerCelebration, getActiveCelebrity]);
+
   if (loading) {
     return (
       <div className="celebrity-counter loading">
@@ -89,7 +101,7 @@ export const CelebrityCounter = () => {
   const celebB = celebrities[1];
   const counterA = counters[celebA.id];
   const counterB = counters[celebB.id];
-  const gameOver = isGameOver();
+  const gameOver = isGameOver(); // Now this is defined after the function
 
   return (
     <div className="celebrity-counter">
@@ -163,12 +175,18 @@ export const CelebrityCounter = () => {
         </div>
       </div>
 
-      {/* First Time User Modal */}
       <FirstTimeModal 
         isOpen={showFirstTimeModal}
         celebrities={celebrities}
         onSelect={handleModalSelection}
       />
+
+      <WinnerCelebration 
+        winner={winner}
+        onComplete={() => setShowWinnerCelebration(false)}
+      />
+
+      <PollingStatus />
     </div>
   );
 };
