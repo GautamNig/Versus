@@ -1,10 +1,26 @@
 /* src/components/CelebrityCounter.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
 .celebrity-counter {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  width: 100vw;
+  position: relative;
 }
 
+/* Header */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -12,10 +28,14 @@
   padding: 1rem 2rem;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
 }
 
 .app-header h1 {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: bold;
 }
 
@@ -25,13 +45,19 @@
   gap: 1rem;
 }
 
+.user-email {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
 .sign-out-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
+  border-radius: 8px;
   color: white;
   cursor: pointer;
+  font-size: 1rem;
   transition: all 0.2s ease;
 }
 
@@ -39,177 +65,388 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-.counter-container {
+/* Two Column Main Layout */
+.counter-container-two-column {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   height: calc(100vh - 80px);
-  gap: 2rem;
-  padding: 2rem;
+  width: 100vw;
+  max-width: 100%;
 }
 
-.celebrity-side {
+/* Celebrity Columns */
+.celebrity-column {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem;
   transition: all 0.3s ease;
-  border: 3px solid transparent;
+  border: 6px solid transparent;
+  height: 100%;
+  padding: 2rem;
+  position: relative;
 }
 
-.celebrity-side.active {
-  border-color: #4ade80;
+.left-column {
+  background: rgba(255, 255, 255, 0.08);
+  border-right: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.right-column {
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.celebrity-column.active {
+  border: none;
   background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.02);
 }
 
-.celebrity-image {
-  width: 300px;
-  height: 300px;
+.celebrity-image-large.active-glow {
+  position: relative;
+  animation: imagePulse 2s infinite;
+  box-shadow: 
+    0 0 0 4px rgba(74, 222, 128, 0.8),
+    0 0 20px rgba(74, 222, 128, 0.6),
+    /* Keep the original shadow */
+    0 15px 50px rgba(0, 0, 0, 0.5);
+}
+
+.celebrity-image-large.active-glow::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border: 4px solid #4ade80;
+  border-radius: 50%;
+  animation: pulseGlow 2s infinite;
+  pointer-events: none;
+}
+
+.celebrity-content-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Large Celebrity Image */
+.celebrity-image-large {
+  position: relative;
+  width: 320px;
+  height: 320px;
   border-radius: 50%;
   overflow: hidden;
-  margin-bottom: 2rem;
-  border: 4px solid white;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 8px solid white;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
 }
 
-.celebrity-image img {
+.celebrity-image-large img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.celebrity-info {
+.counting-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(74, 222, 128, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 10;
+}
+
+/* Celebrity Info */
+.celebrity-info-column {
   text-align: center;
+  width: 100%;
 }
 
-.celebrity-info h2 {
+.celebrity-name-large {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
   font-weight: bold;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.counter-display {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+.counter-display-column {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
 }
 
-.counter-value {
+.counter-value-large {
+  font-size: 4rem;
+  font-weight: bold;
   color: #4ade80;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.counter-max {
-  font-size: 1.5rem;
-  opacity: 0.8;
+.counter-max-medium {
+  font-size: 2rem;
+  opacity: 0.9;
 }
 
-.counting-indicator {
-  font-size: 1.2rem;
-  color: #4ade80;
-  font-weight: bold;
-  animation: pulse 1.5s infinite;
+/* Animation */
+.animation-medium {
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.center-controls {
+/* Center Controls Overlay */
+.center-controls-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  z-index: 50;
+  pointer-events: none;
 }
 
-.switch-button {
+.center-controls-overlay>* {
+  pointer-events: auto;
+}
+
+.switch-button-center {
   padding: 1.5rem 3rem;
   font-size: 1.5rem;
   font-weight: bold;
   background: #f59e0b;
   color: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 35px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.6);
+  min-width: 220px;
 }
 
-.switch-button:hover:not(:disabled) {
+.switch-button-center:hover:not(:disabled) {
   background: #d97706;
-  transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(245, 158, 11, 0.6);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 15px 40px rgba(245, 158, 11, 0.8);
 }
 
-.switch-button:disabled {
+.switch-button-center:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.switch-button.game-over {
+.switch-button-center.game-over {
   background: #6b7280;
-  box-shadow: 0 10px 30px rgba(107, 114, 128, 0.4);
+  box-shadow: 0 10px 30px rgba(107, 114, 128, 0.6);
 }
 
-.winner-message {
-  font-size: 2rem;
+.switch-button-center.cooldown {
+  background: #6b7280 !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.cooldown-message-center {
+  color: #fbbf24;
+  font-size: 1.1rem;
+  text-align: center;
+  animation: pulse 1.5s infinite;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.8rem 1.5rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.winner-message-center {
+  font-size: 1.8rem;
   font-weight: bold;
   text-align: center;
-  animation: bounce 1s infinite;
+  color: #fbbf24;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+  animation: bounce 0.5s infinite alternate;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+}
+
+/* Animations */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  from {
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    transform: translateY(-10px) scale(1.05);
+  }
 }
 
-.loading, .error {
+@keyframes coinFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes imagePulse {
+  0% {
+    box-shadow: 
+      0 0 0 4px rgba(74, 222, 128, 0.8),
+      0 0 20px rgba(74, 222, 128, 0.6),
+      0 15px 50px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 6px rgba(74, 222, 128, 1),
+      0 0 30px rgba(74, 222, 128, 0.8),
+      0 15px 50px rgba(0, 0, 0, 0.5);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 4px rgba(74, 222, 128, 0.8),
+      0 0 20px rgba(74, 222, 128, 0.6),
+      0 15px 50px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Loading and Error States */
+.loading,
+.error {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-size: 1.5rem;
-}
-/* Add this to src/components/CelebrityCounter.css */
-.winner-badge {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #fbbf24;
-  animation: bounce 0.5s infinite alternate;
-  margin-top: 1rem;
+  font-size: 1.8rem;
+  width: 100vw;
 }
 
-@keyframes bounce {
-  from { transform: scale(1); }
-  to { transform: scale(1.2); }
+.loading-spinner {
+  font-size: 1.8rem;
 }
 
-/* Cooldown button state */
-.switch-button.cooldown {
-  background: #6b7280 !important;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3) !important;
+/* Polling Status */
+.polling-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-family: monospace;
+  z-index: 1000;
 }
 
-.switch-button.cooldown:hover {
-  transform: none !important;
+/* Responsive Design */
+@media (max-width: 1200px) {
+.celebrity-image-large {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 8px solid white;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
 }
 
-.cooldown-message {
-  color: #fbbf24;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  text-align: center;
-  animation: pulse 1.5s infinite;
+  .counter-value-large {
+    font-size: 3.5rem;
+  }
+
+  .celebrity-name-large {
+    font-size: 2.2rem;
+  }
 }
 
-/* Update the existing pulse animation to be more subtle */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+@media (max-width: 768px) {
+  .counter-container-two-column {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: auto;
+    min-height: calc(100vh - 80px);
+  }
+
+  .celebrity-column {
+    padding: 1.5rem;
+    min-height: 50vh;
+  }
+
+  .left-column {
+    border-right: none;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .right-column {
+    border-left: none;
+    border-top: 3px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .celebrity-image-large {
+    width: 220px;
+    height: 220px;
+  }
+
+  .switch-button-center {
+    padding: 1.2rem 2.5rem;
+    font-size: 1.3rem;
+    min-width: 180px;
+  }
+
+  @keyframes pulseGlow {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 20px #4ade80;
+    }
+
+    50% {
+      transform: scale(1.02);
+      opacity: 0.7;
+      box-shadow: 0 0 30px #4ade80, 0 0 40px #4ade80;
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 20px #4ade80;
+    }
+  }
 }

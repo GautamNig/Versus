@@ -5,7 +5,7 @@ export const appConfig = {
   
   // Counter settings
   counter: {
-    incrementInterval: 1000, // 1 second
+    incrementInterval: 3000, // 1 second
     maxValue: 100,
     startValue: 0
   },
@@ -21,7 +21,6 @@ export const appConfig = {
   
   // UI settings
   ui: {
-    showPollingStatus: true,
     enableSounds: false,
     animationDuration: 300
   }

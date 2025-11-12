@@ -4,8 +4,10 @@ import { useAuth } from '../hooks/useAuth';
 import { useCelebrityCounter } from '../hooks/useCelebrityCounter';
 import { useCounterIncrement } from '../hooks/useCounterIncrement';
 import { useCooldown } from '../hooks/useCooldown';
+import { useCounterAnimation } from '../hooks/useCounterAnimation';
 import { FirstTimeModal } from './FirstTimeModal';
-import { PollingStatus } from './PollingStatus';
+import { PiggyBankFixed } from './PiggyBankFixed';
+import { CoinAnimation } from './CoinAnimation';
 import { WinnerCelebration } from './WinnerCelebration';
 import './CelebrityCounter.css';
 
@@ -27,8 +29,8 @@ export const CelebrityCounter = () => {
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [useFallbackAnimation, setUseFallbackAnimation] = useState(false);
   
-  // Add cooldown hook
   const { cooldown, isOnCooldown, startCooldown } = useCooldown();
 
   useEffect(() => {
@@ -36,6 +38,19 @@ export const CelebrityCounter = () => {
       setShowFirstTimeModal(true);
     }
   }, [loading, checkIfFirstTimeUser]);
+
+  // Get celebrity data
+  const celebA = celebrities[0];
+  const celebB = celebrities[1];
+  const counterA = counters[celebA?.id];
+  const counterB = counters[celebB?.id];
+
+  // Set up animations for both celebrities
+  const { shouldAnimate: shouldAnimateA, handleAnimationComplete: handleAnimationCompleteA } = 
+    useCounterAnimation(counterA?.current_value || 0, 'celebrityA');
+  
+  const { shouldAnimate: shouldAnimateB, handleAnimationComplete: handleAnimationCompleteB } = 
+    useCounterAnimation(counterB?.current_value || 0, 'celebrityB');
 
   const handleSwitchCounter = async () => {
     if (celebrities.length < 2 || isOnCooldown) return;
@@ -46,9 +61,7 @@ export const CelebrityCounter = () => {
     
     const newActiveId = currentActive === celebA.id ? celebB.id : celebA.id;
     
-    // Start cooldown before making the API call
     startCooldown();
-    
     await switchCounter(newActiveId);
   };
 
@@ -61,7 +74,7 @@ export const CelebrityCounter = () => {
     if (!activeCelebrity) return 'Start Counter';
     
     if (isOnCooldown) {
-      return `Cooldown: ${cooldown}s`;
+      return `${cooldown}s`;
     }
     
     const activeCeleb = celebrities.find(c => c.id === activeCelebrity);
@@ -91,6 +104,15 @@ export const CelebrityCounter = () => {
     }
   }, [counters, showWinnerCelebration, getActiveCelebrity]);
 
+  // Switch to fallback after 5 seconds if Rive doesn't load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setUseFallbackAnimation(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   if (loading) {
     return (
       <div className="celebrity-counter loading">
@@ -108,10 +130,6 @@ export const CelebrityCounter = () => {
     );
   }
 
-  const celebA = celebrities[0];
-  const celebB = celebrities[1];
-  const counterA = counters[celebA.id];
-  const counterB = counters[celebB.id];
   const gameOver = isGameOver();
 
   return (
@@ -119,76 +137,104 @@ export const CelebrityCounter = () => {
       <header className="app-header">
         <h1>Celebrity Counter</h1>
         <div className="user-info">
-          <span>Welcome, {user?.email}</span>
+          <span className="user-email">{user?.email}</span>
           <button onClick={signOut} className="sign-out-btn">Sign Out</button>
         </div>
       </header>
 
-      <div className="counter-container">
-        {/* Celebrity A */}
-        <div className={`celebrity-side ${activeCelebrity === celebA.id ? 'active' : ''}`}>
-          <div className="celebrity-image">
-            <img src={celebA.image_url} alt={celebA.name} />
-          </div>
-          <div className="celebrity-info">
-            <h2>{celebA.name}</h2>
-            <div className="counter-display">
-              <span className="counter-value">
-                {counterA?.current_value || 0}
-              </span>
-              <span className="counter-max">/ {counterA?.max_value || 100}</span>
+      <div className="counter-container-two-column">
+        {/* Left Column - Celebrity A */}
+        <div className={`celebrity-column left-column ${activeCelebrity === celebA.id ? 'active' : ''}`}>
+          <div className="celebrity-content-column">
+<div className={`celebrity-image-large ${activeCelebrity === celebA.id ? 'active-glow' : ''}`}>
+  <img src={celebA.image_url} alt={celebA.name} />
+  {activeCelebrity === celebA.id && (
+    <div className="counting-badge">LIVE</div>
+  )}
+</div>
+            
+            <div className="celebrity-info-column">
+              <h2 className="celebrity-name-large">{celebA.name}</h2>
+              
+              <div className="counter-display-column">
+                <span className="counter-value-large">
+                  {counterA?.current_value || 0}
+                </span>
+                <span className="counter-max-medium">/ {counterA?.max_value || 100}</span>
+              </div>
+              
+              {/* Animation */}
+              <div className="animation-medium">
+                {useFallbackAnimation ? (
+                  <CoinAnimation shouldAnimate={shouldAnimateA} />
+                ) : (
+                  <PiggyBankFixed 
+                    shouldAnimate={shouldAnimateA}
+                    onAnimationComplete={handleAnimationCompleteA}
+                  />
+                )}
+              </div>
             </div>
-            {activeCelebrity === celebA.id && (
-              <div className="counting-indicator">Counting... 🟢</div>
-            )}
-            {gameOver && counterA?.current_value >= counterA?.max_value && (
-              <div className="winner-badge">🏆 WINNER!</div>
-            )}
           </div>
         </div>
 
-        {/* Center Button */}
-        <div className="center-controls">
-          <button 
-            onClick={handleSwitchCounter}
-            disabled={gameOver || showFirstTimeModal || isOnCooldown}
-            className={`switch-button ${gameOver ? 'game-over' : ''} ${isOnCooldown ? 'cooldown' : ''}`}
-          >
-            {gameOver ? 'Game Over!' : getButtonText()}
-          </button>
-          {isOnCooldown && (
-            <div className="cooldown-message">
-              Please wait {cooldown} seconds before switching again
+        {/* Right Column - Celebrity B */}
+        <div className={`celebrity-column right-column ${activeCelebrity === celebB.id ? 'active' : ''}`}>
+          <div className="celebrity-content-column">
+    <div className={`celebrity-image-large ${activeCelebrity === celebB.id ? 'active-glow' : ''}`}>
+  <img src={celebB.image_url} alt={celebB.name} />
+  {activeCelebrity === celebB.id && (
+    <div className="counting-badge">LIVE</div>
+  )}
+</div>
+            
+            <div className="celebrity-info-column">
+              <h2 className="celebrity-name-large">{celebB.name}</h2>
+              
+              <div className="counter-display-column">
+                <span className="counter-value-large">
+                  {counterB?.current_value || 0}
+                </span>
+                <span className="counter-max-medium">/ {counterB?.max_value || 100}</span>
+              </div>
+              
+              {/* Animation */}
+              <div className="animation-medium">
+                {useFallbackAnimation ? (
+                  <CoinAnimation shouldAnimate={shouldAnimateB} />
+                ) : (
+                  <PiggyBankFixed 
+                    shouldAnimate={shouldAnimateB}
+                    onAnimationComplete={handleAnimationCompleteB}
+                  />
+                )}
+              </div>
             </div>
-          )}
-          {gameOver && (
-            <div className="winner-message">
-              {getActiveCelebrity()?.name} Wins! 🎉
-            </div>
-          )}
+          </div>
         </div>
+      </div>
 
-        {/* Celebrity B */}
-        <div className={`celebrity-side ${activeCelebrity === celebB.id ? 'active' : ''}`}>
-          <div className="celebrity-image">
-            <img src={celebB.image_url} alt={celebB.name} />
+      {/* Center Controls Overlay */}
+      <div className="center-controls-overlay">
+        <button 
+          onClick={handleSwitchCounter}
+          disabled={gameOver || showFirstTimeModal || isOnCooldown}
+          className={`switch-button-center ${gameOver ? 'game-over' : ''} ${isOnCooldown ? 'cooldown' : ''}`}
+        >
+          {gameOver ? 'Game Over!' : getButtonText()}
+        </button>
+        
+        {isOnCooldown && (
+          <div className="cooldown-message-center">
+            Wait {cooldown}s before switching
           </div>
-          <div className="celebrity-info">
-            <h2>{celebB.name}</h2>
-            <div className="counter-display">
-              <span className="counter-value">
-                {counterB?.current_value || 0}
-              </span>
-              <span className="counter-max">/ {counterB?.max_value || 100}</span>
-            </div>
-            {activeCelebrity === celebB.id && (
-              <div className="counting-indicator">Counting... 🟢</div>
-            )}
-            {gameOver && counterB?.current_value >= counterB?.max_value && (
-              <div className="winner-badge">🏆 WINNER!</div>
-            )}
+        )}
+        
+        {gameOver && (
+          <div className="winner-message-center">
+            🎉 {getActiveCelebrity()?.name} Wins! 🎉
           </div>
-        </div>
+        )}
       </div>
 
       <FirstTimeModal 
@@ -202,7 +248,6 @@ export const CelebrityCounter = () => {
         onComplete={() => setShowWinnerCelebration(false)}
       />
 
-      <PollingStatus />
     </div>
   );
 };
